@@ -2,7 +2,6 @@ import serial
 from serial import Serial
 import time
 
-from serial.win32 import EV_CTS
 from myutils import *
 
 
