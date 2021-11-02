@@ -4,7 +4,7 @@ class RGBDimmerController():
     MIN_TEMPERATURE = 1000
     MAX_TEMPERATURE = 12000
     MIN_HUE = 0
-    MAX_HUE = 259
+    MAX_HUE = 359
     MIN_BRIGHTNESS = 0
     MAX_BRIGHTNESS = 255
 
