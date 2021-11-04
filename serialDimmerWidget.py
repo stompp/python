@@ -1,6 +1,6 @@
 import math
 from PyQt5.QtCore import Qt
-from PyQt5.QtGui import QColor
+from PyQt5.QtGui import QColor, QWheelEvent
 from PyQt5.QtWidgets import QApplication, QHBoxLayout, QLabel, QPushButton, QVBoxLayout, QWidget, QColorDialog,\
                             QSlider, QStyleOptionSlider, QStyle
 
@@ -52,20 +52,33 @@ class ColorPickerWidget(QColorDialog):
 class ClickSlider(QSlider):
     def __init__(self, *args, **kwargs):
         super(ClickSlider, self).__init__(*args, **kwargs)
+        self.setMouseTracking(True)    
     def mousePressEvent(self, event):
        
         if event.button() == Qt.LeftButton:
-            val = self.pixelPosToRangeValue(event.pos())
-            self.setValue(val)
+           
+
+            opt = QStyleOptionSlider()
+            self.initStyleOption(opt)
+            sr = self.style().subControlRect(QStyle.CC_Slider, opt, QStyle.SC_SliderHandle, self)
+            # do nothing if clicked on handle
+            if sr.contains(event.pos()):
+                super(ClickSlider, self).mousePressEvent(event)
+            # move handle and set value if clicked not on on handle
+            else:
+
+                val = self.pixelPosToRangeValue(event.pos())
+                self.setValue(val)
         else:
             super(ClickSlider, self).mousePressEvent(event)
+    
 
     def pixelPosToRangeValue(self, pos):
         opt = QStyleOptionSlider()
         self.initStyleOption(opt)
         gr = self.style().subControlRect(QStyle.CC_Slider, opt, QStyle.SC_SliderGroove, self)
         sr = self.style().subControlRect(QStyle.CC_Slider, opt, QStyle.SC_SliderHandle, self)
-
+     
         if self.orientation() == Qt.Horizontal:
             sliderLength = sr.width()
             sliderMin = gr.x()
@@ -80,6 +93,7 @@ class ClickSlider(QSlider):
                                                sliderMax - sliderMin, opt.upsideDown)
 
 class TemperatureSlider(ClickSlider):
+    WHEEL_INC = 100
     STYLE = """         
                TemperatureSlider::groove:horizontal {
                     background-color: qlineargradient(x1: 0, y1: 0, x2: 1, y2: 0,
@@ -138,9 +152,18 @@ class TemperatureSlider(ClickSlider):
         super(TemperatureSlider, self).__init__(*args, **kwargs)        
 
         self.setRange(RGBDimmerController.MIN_TEMPERATURE,RGBDimmerController.MAX_TEMPERATURE)
-        self.setMouseTracking(True)
-        self.setSingleStep(100)   
+         
         self.setStyleSheet(self.STYLE)
+        
+    def wheelEvent(self, event):
+        # print(f"delta is {event.angleDelta()}")
+        if event.angleDelta().y()> 0:
+            # print("positive")
+            self.setValue(self.value()+self.WHEEL_INC)
+        else:
+            # print("negative")
+            self.setValue(self.value()-self.WHEEL_INC)
+        # print(f"delta is {event.angleDelta()}")
 
 class HueSlider(ClickSlider):
 #  HueSlider{
@@ -179,13 +202,8 @@ class HueSlider(ClickSlider):
         super(HueSlider, self).__init__(*args, **kwargs)        
 
         self.setRange(RGBDimmerController.MIN_HUE,RGBDimmerController.MAX_HUE)
-        self.setMouseTracking(True)
-        self.setSingleStep(5)   
         self.setStyleSheet(self.STYLE)
-        self.setObjectName("hue")
-        for children in self.findChildren(super):
-            classname = children.metaObject().className()
-            print(classname)
+       
 
 class BrightnessSlider(ClickSlider):
     STYLE_TEMPLATE = """BrightnessSlider::groove:horizontal {{
@@ -204,8 +222,6 @@ class BrightnessSlider(ClickSlider):
         super(BrightnessSlider, self).__init__(*args, **kwargs)        
 
         self.setRange(RGBDimmerController.MIN_BRIGHTNESS,RGBDimmerController.MAX_BRIGHTNESS)
-        self.setMouseTracking(True)
-        self.setSingleStep(5)  
         self.set_color("white")
      
 
