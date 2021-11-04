@@ -53,10 +53,12 @@ class ClickSlider(QSlider):
     def __init__(self, *args, **kwargs):
         super(ClickSlider, self).__init__(*args, **kwargs)
     def mousePressEvent(self, event):
-        super(ClickSlider, self).mousePressEvent(event)
+       
         if event.button() == Qt.LeftButton:
             val = self.pixelPosToRangeValue(event.pos())
             self.setValue(val)
+        else:
+            super(ClickSlider, self).mousePressEvent(event)
 
     def pixelPosToRangeValue(self, pos):
         opt = QStyleOptionSlider()
@@ -230,12 +232,12 @@ class RGBDimmerWidget(QWidget):
         # self.color_btn.clicked.connect(self.set_color)
 
 
-        self.color_dialog = ColorPickerWidget()
+        self.color_picker = ColorPickerWidget()
       
-        self.color_dialog.currentColorChanged.connect(self.colorSelected)
+        self.color_picker.currentColorChanged.connect(self.colorSelected)
       
         
-        # self.color_dialog.colorSelected.connect(lambda: print("Color Changed")) 
+        # self.color_picker.colorSelected.connect(lambda: print("Color Changed")) 
        
 
         self.temperature_slider = TemperatureSlider(Qt.Horizontal, self)
@@ -262,65 +264,61 @@ class RGBDimmerWidget(QWidget):
         # left_column_lo.addWidget(self.hue_slider)
         # left_column_lo.addWidget(self.brighness_slider)
 
-        left_column_lo.addWidget(self.color_dialog)
+        left_column_lo.addWidget(self.color_picker)
 
         c = QColor(255,0,0)
-        self.color_dialog.setCurrentColor(c)
+        self.color_picker.setCurrentColor(c)
         self.colorSelected(c)
+
+        print(f"width is {self.width()}")
+        self.setFixedWidth(self.color_picker.width()/2)
 
     def on_button(self):
         self.dimmer.sendCommand(3)
     
     def set_temperature(self, value):
-        b = self.color_dialog.currentColor().value()
+        b = self.color_picker.currentColor().value()
         k = Kelvin2RGB(value,math.ceil(mapValue(b,0.0,255.0,Kelvin2RGB.MIN_BRIGHTNESS,Kelvin2RGB.MAX_BRIGHTNESS)))
-        self.color_dialog.blockSignals(True)
-        self.color_dialog.setCurrentColor(QColor(k.red,k.green,k.blue))
-        self.color_dialog.blockSignals(False)
+        self.color_picker.blockSignals(True)
+        self.color_picker.setCurrentColor(QColor(k.red,k.green,k.blue))
+        self.color_picker.blockSignals(False)
         self.dimmer.setTemperature(value)
         self.brighness_slider.set_color(rgb_to_hex((k.red,k.green,k.blue),True))
   
     def set_hue(self, value):
-        b = self.color_dialog.currentColor().value()
+        b = self.color_picker.currentColor().value()
         c = QColor.fromHsv(value,255,b)
         self.brighness_slider.set_color(rgb_to_hex((c.red(),c.green(),c.blue()),True))
-        self.color_dialog.blockSignals(True)
-        self.color_dialog.setCurrentColor(c)
-        self.color_dialog.blockSignals(False)
+        self.color_picker.blockSignals(True)
+        self.color_picker.setCurrentColor(c)
+        self.color_picker.blockSignals(False)
         self.dimmer.setHue(value)
 
     def set_brightness(self, value):
       
         if value > 0:
-            c = self.color_dialog.currentColor()
+            c = self.color_picker.currentColor()
             c.setHsv(c.hue(),c.saturation(),value)
-            self.color_dialog.blockSignals(True)
-            self.color_dialog.setCurrentColor(c)
-            self.color_dialog.blockSignals(False)
+            self.color_picker.blockSignals(True)
+            self.color_picker.setCurrentColor(c)
+            self.color_picker.blockSignals(False)
         self.dimmer.setBrightness(value)
 
-    # def set_color(self):
-    #     # color_dialog = QColorDialog()
-    #     self.color_dialog.show()
-    #     # self.color_dialog.currentColorChanged.connect(self.colorSelected)
-    #     # color = self.color_dialog.getColor()
-    #     # color = QColorDialog.getColor()
-
-    #     # if color.isValid():
-    #     #     self.dimmer.setRGB(color.red(),color.green(),color.blue())
 
     def colorSelected(self,color):
         try:
             if color.isValid():
                
                 self.dimmer.setRGB(color.red(),color.green(),color.blue())
+                
                 self.brighness_slider.blockSignals(True)
                 self.hue_slider.blockSignals(True)
 
                 self.brighness_slider.setValue(color.value())
-                self.brighness_slider.set_color(rgb_to_hex((color.red(),color.green(),color.blue()),True))
+               
                 if color.hue() > -1 :
                     self.hue_slider.setValue(color.hue())
+                    self.brighness_slider.set_color(rgb_to_hex((color.red(),color.green(),color.blue()),True))
 
                 self.brighness_slider.blockSignals(False)
                 self.hue_slider.blockSignals(False)

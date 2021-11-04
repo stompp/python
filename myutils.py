@@ -2,8 +2,7 @@ import threading
 import random
 
 def rgb_to_hex(rgb,maximize = False):
-
-    
+ 
     if maximize:
 
         # print(f"before maximize : {rgb}")
@@ -24,6 +23,7 @@ def createRandomRGB(maxC = 255):
 
 def mapValue(x, in_min, in_max, out_min, out_max):
     return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min
+    
 def constrainValue(x,out_min,out_max):
     return min(max(out_min,x),out_max)
 
