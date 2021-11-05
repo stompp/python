@@ -1,3 +1,4 @@
+from random import randint
 from myutils import *
 from kelving2rgb import *
 class RGBDimmerController():
@@ -7,6 +8,10 @@ class RGBDimmerController():
     MAX_HUE = 359
     MIN_BRIGHTNESS = 0
     MAX_BRIGHTNESS = 255
+    MIN_SATURATION = 0
+    MAX_SATURATION = 255
+    MIN_COMPONENT = 0
+    MAX_COMPONENT = 255
 
     def __init__(self):
         self.senders = MessageBroadcaster()
@@ -28,11 +33,32 @@ class RGBDimmerController():
         self.setRGB(createRandomRGB())
 
     def setTemperature(self,temperature):
-        self.send("T {}".format(int(temperature)))
+        self.send("K {}".format(int(temperature)))
 
     def setHue(self,hue):
         if hue >= self.MIN_HUE and hue < self.MAX_HUE:
-            self.send("H {}".format(int(hue)))
+            self.send("H {}".format(int(hue))) 
+    def setTone(self,tone):
+        self.send("T {}".format(int(tone)))
+
+    def setRandomHue(self):
+        h = randint(self.MIN_HUE,2*self.MAX_HUE)%self.MAX_HUE
+        self.setTone(h)
+    
+    def setRandomTemperature(self):
+        t = randint(self.MIN_TEMPERATURE,self.MAX_TEMPERATURE)
+        self.setTone(t)
+
+    def setRandomTone(self):
+        t = randint(0,2000)
+        if t > 1500:
+            self.setRandomTemperature()
+        else :
+            self.setRandomHue()
+    
+
+
+   
 
     def setBrightness(self,brightness):
         if brightness >= self.MIN_BRIGHTNESS and brightness <= self.MAX_BRIGHTNESS:

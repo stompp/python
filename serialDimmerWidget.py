@@ -1,3 +1,4 @@
+from datetime import time
 import math
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QColor, QWheelEvent
@@ -9,7 +10,7 @@ from serialhelper import SerialHelper
 import sys
 from myutils import *
 from RGBDimmer import *
-
+import time
 DIMMER_WIDGET_STYLE = """
     QSlider::handle:horizontal {
                     background: qlineargradient(x1:0, y1:0, x2:1, y2:1, stop:0 #b4b4b4, stop:1 #8f8f8f);
@@ -166,16 +167,6 @@ class TemperatureSlider(ClickSlider):
         # print(f"delta is {event.angleDelta()}")
 
 class HueSlider(ClickSlider):
-#  HueSlider{
-#                     background-color: qlineargradient(x1: 0, y1: 0, x2: 1, y2: 0,
-#                                     stop: 0 red, 
-#                                     stop: 0.17 #ff0,
-#                                     stop: 0.33 lime,
-#                                     stop: 0.5 cyan,
-#                                     stop: 0.66 blue
-#                                     stop: 0.83 #f0f
-#                                     stop: 1 red);
-#                 }
     STYLE = """         
                HueSlider::groove:horizontal {
                     background-color: qlineargradient(x1: 0, y1: 0, x2: 1, y2: 0,
@@ -219,6 +210,7 @@ class BrightnessSlider(ClickSlider):
                         """
     
     def __init__(self, *args, **kwargs):
+       
         super(BrightnessSlider, self).__init__(*args, **kwargs)        
 
         self.setRange(RGBDimmerController.MIN_BRIGHTNESS,RGBDimmerController.MAX_BRIGHTNESS)
@@ -229,64 +221,88 @@ class BrightnessSlider(ClickSlider):
      
         self.setStyleSheet(self.STYLE_TEMPLATE.format(hexrgb))
 
+
+class SaturationSlider(ClickSlider):
+    STYLE_TEMPLATE = """SaturationSlider::groove:horizontal {{
+                            background-color: qlineargradient(x1: 0, y1: 0, x2: 1, y2: 0,
+                                stop: 0 white,                                
+                                stop: 1 "{0}");
+                        }}
+                        SaturationSlider::groove:vertical {{
+                            background-color: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
+                                stop: 0 white,                                
+                                stop: 1 "{0}");
+                        }}
+                        """
+    
+    def __init__(self, *args, **kwargs):
+        super(SaturationSlider, self).__init__(*args, **kwargs)        
+
+        self.setRange(RGBDimmerController.MIN_SATURATION,RGBDimmerController.MAX_SATURATION)
+        self.set_color("white")
+     
+
+    def set_color(self,hexrgb):
+     
+        self.setStyleSheet(self.STYLE_TEMPLATE.format(hexrgb))
+
+
+
 class RGBDimmerWidget(QWidget):
+
     def __init__(self, rgbDimmer = 0):
         super(RGBDimmerWidget,self).__init__()
-
-      
-        # self.serial_monitor.serial = RGBDimmerSerial()
 
         if rgbDimmer == 0:
             self.dimmer = RGBDimmerController()
         else :
             self.dimmer = rgbDimmer
 
+        self.random_test_thread = LoopThreadHelper(self.random_program)
+
+        self.random_test_btn = QPushButton("Random Test",self)
+        self.random_test_btn.clicked.connect(self.start_stop_random_program)
+        
         self.on_btn = QPushButton("On",self)
         self.on_btn.clicked.connect(self.on_button)
 
-        # self.color_btn = QPushButton("Set Color",self)
-        # self.color_btn.clicked.connect(self.set_color)
-
-
-        self.color_picker = ColorPickerWidget()
-      
-        self.color_picker.currentColorChanged.connect(self.colorSelected)
-      
-        
-        # self.color_picker.colorSelected.connect(lambda: print("Color Changed")) 
-       
-
+     
         self.temperature_slider = TemperatureSlider(Qt.Horizontal, self)
         self.temperature_slider.valueChanged[int].connect(self.set_temperature)
+        self.temperature_slider.valueChanged[int].connect(self.dimmer.setTemperature)
 
         self.hue_slider = HueSlider(Qt.Horizontal, self)
         self.hue_slider.valueChanged[int].connect(self.set_hue)
+        self.hue_slider.valueChanged[int].connect(self.dimmer.setHue)
 
         self.brighness_slider = BrightnessSlider(Qt.Horizontal, self)
         self.brighness_slider.valueChanged[int].connect(self.set_brightness)
+        self.brighness_slider.valueChanged[int].connect(self.dimmer.setBrightness)
 
         self.sliders_lo = QVBoxLayout()
         self.sliders_lo.addWidget(self.temperature_slider)
         self.sliders_lo.addWidget(self.hue_slider)
         self.sliders_lo.addWidget(self.brighness_slider)
 
-        left_column_lo = QVBoxLayout(self)
-
-        left_column_lo.addWidget(self.on_btn)
-        # left_column_lo.addWidget(self.color_btn)
-        left_column_lo.addLayout(self.sliders_lo)
+     
 
         # left_column_lo.addWidget(self.temperature_slider)
         # left_column_lo.addWidget(self.hue_slider)
         # left_column_lo.addWidget(self.brighness_slider)
 
+        self.color_picker = ColorPickerWidget()      
+        self.color_picker.currentColorChanged.connect(self.set_color)
+
+        left_column_lo = QVBoxLayout(self)
+        left_column_lo.addWidget(self.random_test_btn)
+        left_column_lo.addWidget(self.on_btn)
+        left_column_lo.addLayout(self.sliders_lo)
         left_column_lo.addWidget(self.color_picker)
 
-        c = QColor(255,0,0)
+        c = QColor(0,255,0)
         self.color_picker.setCurrentColor(c)
-        self.colorSelected(c)
+        # self.set_color(c)
 
-        print(f"width is {self.width()}")
         self.setFixedWidth(self.color_picker.width()/2)
 
     def on_button(self):
@@ -298,7 +314,7 @@ class RGBDimmerWidget(QWidget):
         self.color_picker.blockSignals(True)
         self.color_picker.setCurrentColor(QColor(k.red,k.green,k.blue))
         self.color_picker.blockSignals(False)
-        self.dimmer.setTemperature(value)
+        # self.dimmer.setTemperature(value)
         self.brighness_slider.set_color(rgb_to_hex((k.red,k.green,k.blue),True))
   
     def set_hue(self, value):
@@ -308,7 +324,8 @@ class RGBDimmerWidget(QWidget):
         self.color_picker.blockSignals(True)
         self.color_picker.setCurrentColor(c)
         self.color_picker.blockSignals(False)
-        self.dimmer.setHue(value)
+
+        # self.dimmer.setHue(value)
 
     def set_brightness(self, value):
       
@@ -318,10 +335,10 @@ class RGBDimmerWidget(QWidget):
             self.color_picker.blockSignals(True)
             self.color_picker.setCurrentColor(c)
             self.color_picker.blockSignals(False)
-        self.dimmer.setBrightness(value)
+        # self.dimmer.setBrightness(value)
 
 
-    def colorSelected(self,color):
+    def set_color(self,color):
         try:
             if color.isValid():
                
@@ -340,6 +357,20 @@ class RGBDimmerWidget(QWidget):
                 self.hue_slider.blockSignals(False)
         except:
             print("Error selecting color")
+
+    def start_stop_random_program(self):
+        if self.random_test_thread.active == True:
+            self.random_test_thread.stop()
+            print("random test stopped")
+        else:
+            self.random_test_thread.start()
+            print("random test started")
+
+    def random_program(self):
+       
+        self.dimmer.setRandomTone()
+        time.sleep(2)
+
 
 
 

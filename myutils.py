@@ -28,10 +28,10 @@ def constrainValue(x,out_min,out_max):
     return min(max(out_min,x),out_max)
 
 class LoopThreadHelper():
-    def __init__(self):
+    def __init__(self,method = 0):
         self.active = False
         self.started = False
-        self.method = 0
+        self.method = method
         self.thr = 0
 
     def loop(self):
@@ -39,10 +39,12 @@ class LoopThreadHelper():
         
         self.started = True
         try:
-            while self.active:
+            while self.active == True:
                 self.method()
         except:
             print("Thread method error")
+            self.active = False
+        print("Loop Thread finished")
         self.started = False
      
 
@@ -50,7 +52,7 @@ class LoopThreadHelper():
         
         try:
             self.active = True
-            self.started = True
+            # self.started = True
             self.thr = threading.Thread(target=self.loop)
             self.thr.daemon = True
             self.thr.start()
@@ -59,6 +61,10 @@ class LoopThreadHelper():
             self.active = False
             self.started = False
     
+    def stop(self):
+        self.active = False
+        
+
     def __del__(self):
         self.active = False  
         while self.started:

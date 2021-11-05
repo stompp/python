@@ -224,9 +224,9 @@ class MonitorWidget2(QWidget):
         self.send_btn = QPushButton("Send", self)
         self.send_btn.clicked.connect(self.sendInput)
 
-        send_lo = QHBoxLayout()
-        send_lo.addWidget(self.send_le)
-        send_lo.addWidget(self.send_btn)
+        self.send_lo = QHBoxLayout()
+        self.send_lo.addWidget(self.send_le)
+        self.send_lo.addWidget(self.send_btn)
 
 
         self.autoscroll_cb = QCheckBox("Autoscroll",self)
@@ -239,23 +239,31 @@ class MonitorWidget2(QWidget):
         self.timestamp_cb.stateChanged.connect(self.timeStampStateChanged)
       
 
-        options_h_lo = QHBoxLayout()
-        options_h_lo.addWidget(self.autoscroll_cb)
-        options_h_lo.addWidget(self.timestamp_cb)
-        options_h_lo.addStretch()
+        self.options_h_lo = QHBoxLayout()
+        self.options_h_lo.addWidget(self.autoscroll_cb)
+        self.options_h_lo.addWidget(self.timestamp_cb)
+        self.options_h_lo.addStretch()
           
         v_lo = QVBoxLayout(self)
         v_lo.addWidget(self.monitor_te)
-        v_lo.addLayout(send_lo)
-        v_lo.addLayout(options_h_lo)
+        v_lo.addLayout(self.send_lo)
+        v_lo.addLayout(self.options_h_lo)
 
         logging.getLogger().addHandler(self.monitor_te)
+        
         # self.status_handler.setFormatter(logging.Formatter('%(asctime)s - %(levelname)s - %(message)s'))
         logging.getLogger().setLevel(logging.DEBUG)
         self.autoScrollStateChanged()
         self.timeStampStateChanged()
 
         
+    def setEnabled(self, enabled):
+       
+        self.monitor_te.setEnabled(enabled)
+        self.send_le.setEnabled(enabled)
+        self.send_btn.setEnabled(enabled)
+       
+        # self.send_lo.children().(enabled)
 
 
     def autoScrollStateChanged(self):
