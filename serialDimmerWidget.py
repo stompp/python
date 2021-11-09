@@ -4,13 +4,17 @@ from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QColor, QWheelEvent
 from PyQt5.QtWidgets import QApplication, QHBoxLayout, QLabel, QPushButton, QVBoxLayout, QWidget, QColorDialog,\
                             QSlider, QStyleOptionSlider, QStyle
+import bluetooth
 
 from serialWidgets import SerialMonitor
-from serialhelper import SerialHelper
+
 import sys
 from myutils import *
 from RGBDimmer import *
+from pyqt5Utils import *
 import time
+
+
 DIMMER_WIDGET_STYLE = """
     QSlider::handle:horizontal {
                     background: qlineargradient(x1:0, y1:0, x2:1, y2:1, stop:0 #b4b4b4, stop:1 #8f8f8f);
@@ -37,61 +41,6 @@ DIMMER_WIDGET_STYLE = """
                     margin: 2px 0;
                         }
                         """
-
-class ColorPickerWidget(QColorDialog):
-    def __init__(self, parent=None):
-        super(ColorPickerWidget,self).__init__(parent)
-        self.setOptions(self.options() | QColorDialog.DontUseNativeDialog)
-
-        for children in self.findChildren(QWidget):
-            classname = children.metaObject().className()
-            if classname not in ("QColorPicker", "QColorLuminancePicker"):
-                children.hide()
-
-
-
-class ClickSlider(QSlider):
-    def __init__(self, *args, **kwargs):
-        super(ClickSlider, self).__init__(*args, **kwargs)
-        self.setMouseTracking(True)    
-    def mousePressEvent(self, event):
-       
-        if event.button() == Qt.LeftButton:
-           
-
-            opt = QStyleOptionSlider()
-            self.initStyleOption(opt)
-            sr = self.style().subControlRect(QStyle.CC_Slider, opt, QStyle.SC_SliderHandle, self)
-            # do nothing if clicked on handle
-            if sr.contains(event.pos()):
-                super(ClickSlider, self).mousePressEvent(event)
-            # move handle and set value if clicked not on on handle
-            else:
-
-                val = self.pixelPosToRangeValue(event.pos())
-                self.setValue(val)
-        else:
-            super(ClickSlider, self).mousePressEvent(event)
-    
-
-    def pixelPosToRangeValue(self, pos):
-        opt = QStyleOptionSlider()
-        self.initStyleOption(opt)
-        gr = self.style().subControlRect(QStyle.CC_Slider, opt, QStyle.SC_SliderGroove, self)
-        sr = self.style().subControlRect(QStyle.CC_Slider, opt, QStyle.SC_SliderHandle, self)
-     
-        if self.orientation() == Qt.Horizontal:
-            sliderLength = sr.width()
-            sliderMin = gr.x()
-            sliderMax = gr.right() - sliderLength + 1
-        else:
-            sliderLength = sr.height()
-            sliderMin = gr.y()
-            sliderMax = gr.bottom() - sliderLength + 1
-        pr = pos - sr.center() + sr.topLeft()
-        p = pr.x() if self.orientation() == Qt.Horizontal else pr.y()
-        return QStyle.sliderValueFromPosition(self.minimum(), self.maximum(), p - sliderMin,
-                                               sliderMax - sliderMin, opt.upsideDown)
 
 class TemperatureSlider(ClickSlider):
     WHEEL_INC = 100
@@ -303,7 +252,7 @@ class RGBDimmerWidget(QWidget):
         self.color_picker.setCurrentColor(c)
         # self.set_color(c)
 
-        self.setFixedWidth(self.color_picker.width()/2)
+        self.setFixedWidth(int(self.color_picker.width()/2))
 
     def on_button(self):
         self.dimmer.sendCommand(3)
@@ -375,26 +324,35 @@ class RGBDimmerWidget(QWidget):
 
 
 
-
+import bluetoothWidgets
 class DimmerSerialWidget(QWidget):
 
     def __init__(self, rgbDimmer = 0, serial = 0):
         super(DimmerSerialWidget,self).__init__()
 
+        h_lo = QHBoxLayout(self)
+       
+
         self.dimmerWidget = RGBDimmerWidget(rgbDimmer)
         self.dimmer = self.dimmerWidget.dimmer
 
-        self.serial_monitor = SerialMonitor(True,serial)
-        self.serial = self.serial_monitor.serial
+      
 
-
-        self.dimmerWidget.dimmer.senders.add(self.serial.sendStr)
-
-        h_lo = QHBoxLayout(self)
-
+        
         h_lo.addWidget(self.dimmerWidget)
+
+        self.serial_monitor = SerialMonitor(True,serial)
+        # self.serial = self.serial_monitor.serial
+        self.dimmerWidget.dimmer.senders.add(self.serial_monitor.serial.sendStr)
         h_lo.addWidget(self.serial_monitor)
+        
+        self.bluetooth_monitor = bluetoothWidgets.BluetoothSerialMonitor()
+        self.dimmerWidget.dimmer.senders.add(self.bluetooth_monitor.socket.sendStr)
+        h_lo.addWidget(self.bluetooth_monitor)
+
         self.setStyleSheet(DIMMER_WIDGET_STYLE)
+
+        
 
     def __del__(self):
         self.dimmer.senders.remove(self.serial.sendStr)

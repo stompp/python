@@ -17,7 +17,7 @@ class RGBDimmerController():
         self.senders = MessageBroadcaster()
 
     def send(self,msg):
-        self.senders.broadcast(msg)
+        self.senders.broadcast(msg+"\r\n")
 
     def sendCommand(self,command):
         self.send(f"C{command}")
@@ -37,9 +37,9 @@ class RGBDimmerController():
 
     def setHue(self,hue):
         if hue >= self.MIN_HUE and hue < self.MAX_HUE:
-            self.send("H {}".format(int(hue))) 
+            self.send("H{}".format(int(hue))) 
     def setTone(self,tone):
-        self.send("T {}".format(int(tone)))
+        self.send("T{}".format(int(tone)))
 
     def setRandomHue(self):
         h = randint(self.MIN_HUE,2*self.MAX_HUE)%self.MAX_HUE
@@ -62,5 +62,5 @@ class RGBDimmerController():
 
     def setBrightness(self,brightness):
         if brightness >= self.MIN_BRIGHTNESS and brightness <= self.MAX_BRIGHTNESS:
-            self.send("B {}".format(int(brightness)))
+            self.send("B{}".format(int(brightness)))
 
