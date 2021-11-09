@@ -60,6 +60,7 @@ class LoopThreadHelper():
             print("Thread start error")
             self.active = False
             self.started = False
+            
     
     def stop(self):
         self.active = False
@@ -104,4 +105,73 @@ class MessageBroadcaster(MethodsList):
 
     def __del__(self):
         return super().__del__()
+
+
+class TransceiverHelper():
+    def __init__(self):
+
+        self.is_connected = False
+      
+        self.time_out = 5
+        self.start_marker = ""
+        self.end_marker = ""
+        self.connection_succes_msg = "{!!}"
+        self.line_adjustment = "\n"
+        self.last_msg = ""
+
+        self.on_msg_received = MessageBroadcaster()
+        self.on_msg_received.add(self.printInput)
+     
+
+        self.input_loop = LoopThreadHelper()
+        self.input_loop.method = self.readInputLoop
+
+
+
+        self.on_msg_sent = MessageBroadcaster()
+
+        self.info_broadcaster = MessageBroadcaster()
+        self.info_broadcaster.add(self.debug)
+        
+    def debug(self,msg):
+        print(msg)
+
+    def printInput(self,msg):
+        print(msg) 
+
+    def format_msg(self,msg):
+        return self.start_marker + msg + self.end_marker + self.line_adjustment
+
+    def sendStr(self,str):
+        pass
+                
+
+    def readLine(self,doStrip = True):
+        pass
+    
+        
+
+
+    def readInputLoop(self):
+        pass
+       
+    
+
+    def waitForRawMessage(self, expected):
+        pass
+      
+
+    def getConnectionReadyMessage(self):
+        pass
+        
+        
+    def connect(self):
+        pass
+       
+
+    def disconnect(self):
+        pass
+        
+
+   
 
