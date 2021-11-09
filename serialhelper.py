@@ -34,12 +34,7 @@ class SerialHelper(Serial):
         
     def debug(self,msg):
         print(msg)
-      
 
-  
-
-   
-               
     def printInput(self,msg):
         print(msg) 
 
@@ -59,11 +54,13 @@ class SerialHelper(Serial):
     #     except:
     #         print("SerialHelper: Error broadcasting sent message ")
 
-
+    def format_msg(self,msg):
+        return self.start_marker + msg + self.end_marker + self.line_adjustment
+        
     def sendStr(self,str):
         try:
             if self.is_open:
-                msg = self.start_marker + str + self.end_marker + self.line_adjustment
+                msg = self.format_msg(str)
                 self.write(msg.encode())
                 self.on_msg_sent.broadcast(msg)
         except:
