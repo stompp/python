@@ -10,29 +10,29 @@ class BluetoothSocketHelper(TransceiverHelper):
         self.address = ""
         self.port = 1
         self.socket = bluetooth.BluetoothSocket()
-
+        self.socket.settimeout(0.001)
+        self.socket.setblocking(False)
         self.on_msg_received.add(self.printInput)
         
-        
-
+        self.buff = ""
     
       
     def sendStr(self,str):
 
         if self.is_connected:
             try:
-                self.socket.send(str.encode())
-                self.on_msg_sent.broadcast(str)
+                # self.socket.send(str.encode())
+                msg = self.format_msg(str)
+                self.socket.sendall(msg.encode())
+                self.on_msg_sent.broadcast(msg)
             except:
                 self.info_broadcaster.broadcast("Send Error")
                 
 
-    def read(self):
+    def read(self, elements = 1):
         x = ""
         if self.is_connected:
-            data = self.socket.recv(1)
-          
-
+            data = self.socket.recv(elements)
             # x = data.decode('utf-8').strip()
             x = data.decode('utf-8').rstrip("\r\n")
 
@@ -42,93 +42,67 @@ class BluetoothSocketHelper(TransceiverHelper):
             # else :
             #     print("x is empty")
                
-        return ""
+        return x
 
+    def readLines(self):
 
-
-    def readLine(self,doStrip = True):
-
-        doIt = True
-        msg = ""
-
-        while doIt == True:
-            x = self.read()
-            if x and len(x) > 0:
-               
-                msg += x
-             
-            else:
-                doIt = False
-                break
-                
+        data = self.socket.recv(1024)
         
-        # print(f"read msg is {msg}")
-        return msg
-        # m = ""
-        # l = 1
-        # ok = True
-        # try:
-        #     while True:
-        #     # try:
-        #         data = ""
-        #         try:
-        #             data = self.socket.recv(1)
-        #         except:
-        #             print("read data error data")
+        if len(data) > 0:
 
-        #         if len(data) == 0:
-        #             print("breaking")
-        #             break
-
-        #         else:
-        #             x = ""
-        #             try:
-        #                 x = data.decode('utf-8')
-        #             except:
-        #                 x = ""
-        #             print(f"x is {x}")
-
-        #             if len(x) > 0:
-        #                 print(f"lenx is {len(x)}")
-        #                 m += x
-        #                 print(f"msg is {m}")
-        #             else:
-                        
-        #                 break
-        #                 print(f"lenx is 0")
-        #                 ok = False
-                        
-              
-        #     # except:
-        #     #     ok = False
-
-
-         
-
-                   
-           
-        # except:
-
-        #     self.info_broadcaster.broadcast("Socket read error")
+            self.buff += data.decode()
             
-        # if len(m) :
+            lines = self.buff.splitlines()
+            if not self.buff.endswith("\n"):
+               
+                self.buff = lines.pop()
+            for line in lines:
+                line.rstrip("\r")
+                yield line
 
-        #     if(doStrip):
-        #         m = m.rstrip("\r\n")
+          
+            
 
-        # print(f"message to return{m}")        
-        # return m
 
+
+    # def readLine(self,doStrip = True):
+
+       
+    #     doIt = True
+    #     msg = ""
+
+    #     while doIt == True:
+    #         x = self.read(1)
+    #         if x and len(x) > 0:
+               
+    #             msg += x
+
+    #         if msg.endswith('\n'):
+    #             break
+    #         else:
+    #             doIt = False
+    #             break
+        
+    #     if doStrip:
+    #         msg = msg.rstrip("\r\n")      
+        
+    #     # print(f"read msg is {msg}")
+    #     return msg
+      
       
 
 
     def readInputLoop(self):
         
         try:
-            msg = self.readLine()
-            if len(msg) > 0 :
+            for msg in self.readLines():
+                if len(msg) > 0 :
                 # print("readInputLoop -> Broadcasting ")
-                self.on_msg_received.broadcast(msg)
+                    self.on_msg_received.broadcast(msg)
+            # msg = self.readLine()
+            # if len(msg) > 0 :
+            #     # print("readInputLoop -> Broadcasting ")
+            #     self.on_msg_received.broadcast(msg)
         except:
              self.info_broadcaster.broadcast(self.__class__ + " readInputLoop Error")
     
@@ -224,7 +198,7 @@ class BluetoothSocketHelper(TransceiverHelper):
     def disconnect(self):
 
         try :
-            # self.input_loop.stop()
+            self.input_loop.stop()
             self.is_connected = False
             self.socket.close()
         except:

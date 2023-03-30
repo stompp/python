@@ -3,3 +3,13 @@ __pycache__/myutils.cpython-39.pyc
 __pycache__/RGBDimmer.cpython-39.pyc
 __pycache__/serialhelper.cpython-39.pyc
 __pycache__/serialWidgets.cpython-39.pyc
+serialduino.py
+dist/serialDimmerWidget.exe
+.idea/misc.xml
+*.iml
+.idea/vcs.xml
+.idea/python.iml
+.idea/misc.xml
+__pycache__/RGBDimmer.cpython-39.pyc
+__pycache__/myutils.cpython-39.pyc
+.idea/misc.xml

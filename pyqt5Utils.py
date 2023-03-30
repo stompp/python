@@ -1,6 +1,6 @@
 from PyQt5 import QtCore
 from PyQt5.QtCore import Qt
-
+# from PyQt5.QtGui import Qt
 from PyQt5.QtGui import QColor, QWheelEvent, QTextCursor
 from PyQt5.QtWidgets import QApplication, QHBoxLayout, QLabel, QPushButton, QVBoxLayout, QWidget, QColorDialog,\
                         QSlider, QStyleOptionSlider, QStyle,QComboBox,QTextEdit, QLineEdit, QCheckBox
@@ -185,12 +185,17 @@ class MonitorWidget(QWidget):
         self.autoscroll_cb.stateChanged.connect(self.autoScrollStateChanged)
         self.timestamp_cb.stateChanged.connect(self.timeStampStateChanged)
       
+        self.clear_btn = QPushButton("Clear", self)
+        # self.clear_btn.layout().setAlignment(Qt.AlignRight)
+        self.clear_btn.clicked.connect(self.monitor_te.clear)
 
         self.options_h_lo = QHBoxLayout()
         self.options_h_lo.addWidget(self.autoscroll_cb)
         self.options_h_lo.addWidget(self.timestamp_cb)
         self.options_h_lo.addStretch()
-          
+
+        self.options_h_lo.addWidget(self.clear_btn)
+         
         v_lo = QVBoxLayout(self)
         v_lo.addWidget(self.monitor_te)
         v_lo.addLayout(self.send_lo)

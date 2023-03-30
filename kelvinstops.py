@@ -1,5 +1,6 @@
 from myutils import rgb_to_hex
 
+
 kelvin_table = {
     1000: (255, 56, 0),
     1100: (255, 71, 0),
@@ -127,11 +128,51 @@ def print_all():
     for k in keys:
         print(f"Temperature {k}, rgb {kelvin_table[k]} hex {rgb_to_hex(kelvin_table[k])} stop {(float(k)-1000.0)/11000.0}")
 
+def print_argb_int_array(temps,init_format = "0x"):
+    keys = kelvin_table.keys()
+    out_str = ""
+    out_list = list()
+    
+    for t in temps:
+       
+        if t in keys:
+            a =[255,]
+            rgb = list(kelvin_table[t])
+            a +=rgb
+            print(a)
+            out_list.append(rgb_to_hex(tuple(a),False,init_format))
+            
+  
+ 
+
+from PyQt5.QtGui import QColor
+
+def print_hues_to_int_array(gap,init_format = "0x"):
+
+    out_list = list()
+    hue = 0
+    while hue <= 359:
+        rgb = QColor.fromHsv(hue,255,255)        
+        out_list.append(hex(rgb.rgb()))
+        # print (rgb.getRgb())
+        if( hue < 359):
+            hue += gap
+            if hue > 359:
+                hue = 359
+        else:
+            break
+
+    print(','.join(out_list))
+       
+      
+
 if __name__ == '__main__':
     # print_all()
 
     print("Stops")
-    temps = range(1000,12500,500)
-    print_stops(temps)
+    # temps = range(1000,12500,500)
+    # print_stops(temps)
+    # print_argb_int_array(temps)
+    print_hues_to_int_array(20)
 
     

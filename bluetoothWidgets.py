@@ -1,5 +1,5 @@
-from http.server import ThreadingHTTPServer
-from operator import add
+
+
 from PyQt5 import QtGui
 from PyQt5.QtCore import QRect, Qt
 from PyQt5.QtWidgets import QApplication, QLabel, QWidget, QPushButton, QComboBox, QLineEdit, QVBoxLayout, QHBoxLayout
@@ -12,6 +12,7 @@ from bluetooth.native_socket import BluetoothSocket
 from serial import serial_for_url
 from bluetoothHelper import *
 from pyqt5Utils import *
+
 def get_nearby_devices():
     nearby_devices = bluetooth.discover_devices(duration=3, lookup_names=True)
     # print("Found {} devices.".format(len(nearby_devices)))
@@ -288,20 +289,22 @@ class BluetoothSerialMonitor(QWidget):
 
         self.connect_button.setEnabled(True)
         if self.isConnected:
-            self.isConnected = True
+           
             self.monitor.setEnabled(True)
             self.portScanner.setEnabled(False)
             self.connect_button.setText("Stop")
         else:
-            self.isConnected = False
+           
             self.monitor.setEnabled(False)
             self.portScanner.setEnabled(True)
             self.connect_button.setText("Start")
 
     
     def connectButtonPressed(self):
+
         thread  = threading.Thread(target=self.connectThread)
         thread.start()
+        
 
     
 

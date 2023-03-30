@@ -1,22 +1,28 @@
 import threading
 import random
 
-def rgb_to_hex(rgb,maximize = False):
- 
-    if maximize:
+def rgb_to_hex(rgb,maximizeTo255 = False,init_format = "#"):
+    r = rgb
+    if maximizeTo255:
 
         # print(f"before maximize : {rgb}")
         m = float(max(rgb))
         if m > 0:
             m = 255.0/m
             # print(f"max is {m}")
-            r = (int(rgb[0]*m),int(rgb[1]*m),int(rgb[2]*m))
+            # r = (int(rgb[0]*m),int(rgb[1]*m),int(rgb[2]*m))
+            r = map(lambda x: int(x*m), rgb)
             # print(f"r is {r}")
      
         # print(f"After maximize : {r}")
-            return '#%02x%02x%02x' % r
-    return '#%02x%02x%02x' % rgb
-    
+    format_str = init_format + len(r)*"%02x"
+    return format_str % r
+    # if(len(r) == 4):
+    #     return '#%02x%02x%02x' % r       
+    # return '#%02x%02x%02x' % rgb
+
+# def argb_to_hex(rgb,maximizeTo255 = False):
+
 def createRandomRGB(maxC = 255):
     o = (random.randint(0,maxC),random.randint(0,maxC),random.randint(0,maxC))
     return o
