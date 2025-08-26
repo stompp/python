@@ -65,8 +65,8 @@ class Kelvin2RGB():
         return int( mapValue(self.brightness,self.MIN_BRIGHTNESS,self.MAX_BRIGHTNESS,self.MIN_COMPONENT,value))
 
     def rgb(self):
-        rgb = [self.red,self.green,self.blue]
-        return rgb
+        return [self.red,self.green,self.blue]
+        # return rgb
 
     def setTemperature(self, temperature):
         self.temperature = int(constrainValue(temperature,self.MIN_TEMPERATURE,self.MAX_TEMPERATURE))
@@ -80,4 +80,9 @@ class Kelvin2RGB():
         self.temperature = int(constrainValue(temperature,self.MIN_TEMPERATURE,self.MAX_TEMPERATURE))
         self.brightness = int(ceil(constrainValue(brightness,self.MIN_BRIGHTNESS,self.MAX_BRIGHTNESS)))
         self.calc_rgb()
+
+
+
+
+    
 
